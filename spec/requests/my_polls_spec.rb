@@ -36,4 +36,27 @@ Rspec.describe Api::V1::MyPollsController, type: :request do
 		end
 	end
 
+	describe "POST /polls" do
+		context "con token valido" do
+			before :each do
+				@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
+				post "/api/v1/polls", { token: @token.token, poll: { title: "Hola mundo", description: "sfsadf asdfsadf asdfasdf asdfasdfas", expires_at: DateTime.now} }
+			end
+			it { have_http_status(200) }
+			it "crea una nueva encuesta" do
+				expect{
+					post "/api/v1/polls", { token: @token.token, poll: { title: "Hola mundo", description: "sfsadf asdfsadf asdfasdf asdfasdfas", expires_at: DateTime.now} }
+					}.to change(MyPoll,:count).by(1)
+			end
+			it "responde con la encuesta creada" do
+				json = JSON.parse(response.body)
+				expect(json["title"]).to eq("Hola mundo")
+			end
+		end
+		context "con token invalido" do
+			before :each do
+				post "/api/v1/polls"
+			end
+		end
+	end
 end
