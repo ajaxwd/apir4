@@ -1,7 +1,8 @@
 class Api::V1::MyPollsController < ApplicationController
 	before_action :suthenticate, only: [:create,:update,:destroy]
+	before_action :set_poll, only: [:show,:update]
 	def index
-		@polls = MyPoll.all
+		
 	end
 
 	def show
@@ -24,6 +25,10 @@ class Api::V1::MyPollsController < ApplicationController
 	end
 
 	private
+
+	def set_poll
+		@polls = MyPoll.all
+	end
 
 	def my_polls_params
 		params.require(:poll).permit(:title,:description,:expires_at)
