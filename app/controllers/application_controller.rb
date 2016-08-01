@@ -10,7 +10,7 @@ class ApplicationController < ActionController::Base
   	token = Token.find_by(token: token_str)
 
   	if token.nil? || !token.is_valid?
-  		render json: { error: "Tu token es invalido", status: :unauthorized}
+  		render json: { error: "Tu token es invalido"}, status: 401
   	else
   		@current_user = token.current_user
   	end

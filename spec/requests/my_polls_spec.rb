@@ -23,7 +23,7 @@ Rspec.describe Api::V1::MyPollsController, type: :request do
 			get "/api/v1/polls/#{@poll.id}"
 		end
 
-		it { have_http_status(200)}
+		it { expect(response).to have_http_status(200)}
 
 		it "mande la encuesta solicitada" do
 			json = JSON.parse(response.body)
@@ -42,7 +42,7 @@ Rspec.describe Api::V1::MyPollsController, type: :request do
 				@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
 				post "/api/v1/polls", { token: @token.token, poll: { title: "Hola mundo", description: "sfsadf asdfsadf asdfasdf asdfasdfas", expires_at: DateTime.now} }
 			end
-			it { have_http_status(200) }
+			it { expect(response).to have_http_status(200) }
 			it "crea una nueva encuesta" do
 				expect{
 					post "/api/v1/polls", { token: @token.token, poll: { title: "Hola mundo", description: "sfsadf asdfsadf asdfasdf asdfasdfas", expires_at: DateTime.now} }
@@ -57,7 +57,7 @@ Rspec.describe Api::V1::MyPollsController, type: :request do
 			before :each do
 				post "/api/v1/polls"
 			end
-			it { have_http_status(401) }
+			it { expect(response).to have_http_status(401) }
 			
 		end
 		context "unvalid params" do
@@ -65,7 +65,7 @@ Rspec.describe Api::V1::MyPollsController, type: :request do
 				@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
 				post "/api/v1/polls", { token: @token.token, poll: { title: "Hola mundo", description: "sfsadf asdfsadf asdfasdf asdfasdfas", expires_at: DateTime.now} }
 			end
-			it { have_http_status(422) }
+			it { expect(response).to have_http_status(422) }
 			it "responde con los errores al guardar la encuesta" do
 				json = JSON.parse(response.body)
 				expect(json["errors"]).to_not be_empty
@@ -74,13 +74,52 @@ Rspec.describe Api::V1::MyPollsController, type: :request do
 	end
 	describe "PATH /polls/:id" do
 		context "con un token valido" do
-			@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
-			@poll = FactoryGirl.create(:my_poll,user: @token.user)	
+			before :each do
+				@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
+				@poll = FactoryGirl.create(:my_poll,user: @token.user)
+				patch api_v1_poll_path(@poll), { token: @token.token, poll: { title: "Nuevo titulo"}}
+			end	
+		it { expect(response).to have_http_status(200) }
+
+		it "actualiza la encuesta indicada" do
+			json = JSON.parse(response.body)
+			expect(json["title"]).to eq("Nuevo titulo")
+		end
+
 		end
 		context "con un token invalido" do
-			@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
-			@poll = FactoryGirl.create(:my_poll,user:FactoryGirl.create(:dummy_user))
+			before :each do
+				@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
+				@poll = FactoryGirl.create(:my_poll,user:FactoryGirl.create(:dummy_user))
+				patch api_v1_poll_path(@poll), { token: @token.token, poll: { title: "Nuevo titulo"}}
+			end
+		it { expect(response).to have_http_status(401) }
 		end
-		it { have_http_status(200) }
+	end
+	describe "DELETE /polls/:id" do
+		context "con un token valido" do
+			before :each do
+				@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
+				@poll = FactoryGirl.create(:my_poll,user: @token.user)
+			end	
+			it { 
+				delete api_v1_poll_path(@poll), { token: @token.token}
+				expect(response).to have_http_status(200) 
+			}
+
+			it "elimina la encuesta indicada" do
+				expect{
+					delete api_v1_poll_path(@poll), { token: @token.token}
+				}.to change(MyPoll,:count).by(-1)
+			end
+		end
+		context "con un token invalido" do
+			before :each do
+				@token = FactoryGirl.create(:token,expires_at: DateTime.now + 10.minutes)
+				@poll = FactoryGirl.create(:my_poll,user:FactoryGirl.create(:dummy_user))
+				delete api_v1_poll_path(@poll), { token: @token.token }
+			end
+		it { expect(response).to have_http_status(401) }
+		end
 	end
 end
