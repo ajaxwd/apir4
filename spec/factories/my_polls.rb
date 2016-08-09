@@ -4,7 +4,7 @@ FactoryGirl.define do
     expires_at "2016-07-24 09:11:05"
     title "MyStringaa"
     description "MyTextdsfadgad agdfgsdf sdfgsdfgsdgsdfg s"
-    factory :Poll_With_questions do
+    factory :poll_with_questions do
     	title "Poll with questions"
 	    description "MyTextdsfadgad agdfgsdf sdfgsdfgsdgsdfg s"
 	    questions { build_list :question, 2}

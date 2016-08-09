@@ -1,11 +1,10 @@
 require 'rails_helper'
 
-Rspec.describe Api::V1::MyPollsController, type: :request do
+Rspec.describe Api::V1::QuestionsController, type: :request do
 
 	before :each do
 			@token = FactoryGirl.create(:token)
-			@poll = FactoryGirl.create(:poll_with_questions, user: @token.user)
-			
+			@poll = FactoryGirl.create(:poll_with_questions, user: @token.user)		
 	end
 
 	describe "GET /polls/:poll_id/questions" do
